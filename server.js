@@ -14,7 +14,7 @@ const SECRET = process.env.JWT_SECRET || 'CHANGE_ME_IN_RENDER';
 const ADMIN_USERNAME = 'Usman';
 const ADMIN_EMAIL = 'admin@alfauzan.com';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Us@#1234';
-const { Pool } = require("pg");
+
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
