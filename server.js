@@ -14,7 +14,16 @@ const SECRET = process.env.JWT_SECRET || 'CHANGE_ME_IN_RENDER';
 const ADMIN_USERNAME = 'Usman';
 const ADMIN_EMAIL = 'admin@alfauzan.com';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Us@#1234';
-const pool = new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.NODE_ENV==='production'?{rejectUnauthorized:false}:false});
+const { Pool } = require("pg");
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === "production"
+    ? { rejectUnauthorized: false }
+    : false,
+  max: 10,
+  idleTimeoutMillis: 30000,
+});
 
 const sql = async (text, params=[]) => (await pool.query(text,params)).rows;
 const n = (v,d=0)=>{const x=Number(v);return Number.isFinite(x)?x:d};
