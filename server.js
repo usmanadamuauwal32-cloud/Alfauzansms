@@ -1,13 +1,14 @@
 require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
-
-const app = express();
+const path = require('path');
 app.use(cors({origin:true}));
 app.use(express.json({limit:'4mb'}));
+app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
 const SECRET = process.env.JWT_SECRET || 'CHANGE_ME_IN_RENDER';
