@@ -1,1 +1,1794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AL-FAUZAN SMS</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#f4f6fb;
+    color:#222;
+}
+
+header{
+    background:#123b73;
+    color:white;
+    padding:18px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+header h1{
+    margin:0;
+    font-size:22px;
+}
+
+.container{
+    max-width:1100px;
+    margin:auto;
+    padding:20px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    margin-bottom:20px;
+    box-shadow:0 4px 15px rgba(0,0,0,.08);
+}
+
+.auth{
+    max-width:450px;
+    margin:40px auto;
+}
+
+input,
+select,
+textarea{
+    width:100%;
+    padding:12px;
+    margin-top:6px;
+    margin-bottom:15px;
+    border:1px solid #ccc;
+    border-radius:7px;
+    font-size:15px;
+}
+
+button{
+    padding:11px 16px;
+    border:none;
+    border-radius:7px;
+    cursor:pointer;
+    background:#123b73;
+    color:white;
+    font-weight:bold;
+    margin:3px;
+}
+
+button:hover{
+    opacity:.9;
+}
+
+.secondary{
+    background:#e5eaf3;
+    color:#123b73;
+}
+
+.danger{
+    background:#b42318;
+}
+
+.success{
+    background:#16806d;
+}
+
+.hidden{
+    display:none;
+}
+
+.message{
+    padding:12px;
+    border-radius:7px;
+    margin-bottom:15px;
+}
+
+.error{
+    background:#ffe3e0;
+    color:#a11;
+}
+
+.ok{
+    background:#ddf7ea;
+    color:#08663f;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:15px;
+}
+
+.stat{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 4px 15px rgba(0,0,0,.07);
+}
+
+.stat h2{
+    margin:0;
+    color:#123b73;
+    font-size:30px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,
+td{
+    padding:10px;
+    border-bottom:1px solid #ddd;
+    text-align:left;
+}
+
+th{
+    background:#edf2fa;
+}
+
+.table-box{
+    overflow-x:auto;
+}
+
+.nav{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+}
+
+.report{
+    background:white;
+    padding:25px;
+    max-width:900px;
+    margin:auto;
+}
+
+.report h1,
+.report h2,
+.report p.school{
+    text-align:center;
+}
+
+@media(max-width:600px){
+
+    header{
+        display:block;
+    }
+
+    .container{
+        padding:10px;
+    }
+
+}
+
+</style>
+</head>
+
+
+<body>
+
+<header>
+
+    <div>
+        <h1>AL-FAUZAN SMS</h1>
+        <small>School Management System</small>
+    </div>
+
+    <div id="userBox" class="hidden">
+
+        <span id="userName"></span>
+
+        <button class="secondary" onclick="logout()">
+            Logout
+        </button>
+
+    </div>
+
+</header>
+
+
+
+<div class="container">
+
+
+<!-- LOGIN PAGE -->
+
+<div id="authPage">
+
+    <div class="card auth">
+
+        <h2>Login</h2>
+
+        <div id="loginMessage"></div>
+
+        <label>Username</label>
+
+        <input
+            id="loginUsername"
+            placeholder="Enter username"
+        >
+
+        <label>Password</label>
+
+        <input
+            id="loginPassword"
+            type="password"
+            placeholder="Enter password"
+        >
+
+        <button onclick="login()">
+            Login
+        </button>
+
+        <button
+            class="secondary"
+            onclick="showRegister()"
+        >
+            Register as Teacher
+        </button>
+
+    </div>
+
+
+
+    <!-- REGISTER -->
+
+    <div
+        id="registerPage"
+        class="card auth hidden"
+    >
+
+        <h2>Teacher Registration</h2>
+
+        <div id="registerMessage"></div>
+
+        <input
+            id="regName"
+            placeholder="Full Name"
+        >
+
+        <input
+            id="regUsername"
+            placeholder="Username"
+        >
+
+        <input
+            id="regEmail"
+            type="email"
+            placeholder="Active Gmail"
+        >
+
+        <input
+            id="regPassword"
+            type="password"
+            placeholder="Password (minimum 6 characters)"
+        >
+
+        <button onclick="registerTeacher()">
+            Submit Registration
+        </button>
+
+        <button
+            class="secondary"
+            onclick="showLogin()"
+        >
+            Back
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- APP -->
+
+<div
+    id="appPage"
+    class="hidden"
+>
+
+    <div
+        id="navigation"
+        class="nav"
+    ></div>
+
+    <div id="content"></div>
+
+</div>
+
+
+</div>
+
+
+
+<script>
+
+
+/*
+=================================
+API CONFIGURATION
+=================================
+
+Because frontend and backend are
+on the same Render service,
+location.origin automatically uses:
+
+https://your-render-app.onrender.com
+*/
+
+const API = location.origin;
+
+
+let token =
+    localStorage.getItem("alfauzan_token") || "";
+
+let user =
+    JSON.parse(
+        localStorage.getItem(
+            "alfauzan_user"
+        ) || "null"
+    );
+
+
+
+/*
+=================================
+API FUNCTION
+=================================
+*/
+
+async function api(
+    endpoint,
+    method = "GET",
+    body = null
+){
+
+    const response =
+        await fetch(
+            API + endpoint,
+            {
+
+                method,
+
+                headers:{
+                    "Content-Type":
+                        "application/json",
+
+                    ...(token ? {
+                        Authorization:
+                            "Bearer " + token
+                    } : {})
+                },
+
+                body:
+                    body
+                    ? JSON.stringify(body)
+                    : undefined
+
+            }
+        );
+
+
+    const data =
+        await response
+        .json()
+        .catch(
+            () => ({})
+        );
+
+
+    if(!response.ok){
+
+        throw new Error(
+            data.error ||
+            "Request failed"
+        );
+
+    }
+
+
+    return data;
+
+}
+
+
+
+/*
+=================================
+MESSAGES
+=================================
+*/
+
+function showMessage(
+    id,
+    text,
+    type = "error"
+){
+
+    document
+        .getElementById(id)
+        .innerHTML =
+        text
+        ?
+        `<div class="message ${type}">
+            ${text}
+        </div>`
+        :
+        "";
+
+}
+
+
+
+/*
+=================================
+REGISTER PAGE
+=================================
+*/
+
+function showRegister(){
+
+    document
+        .getElementById(
+            "registerPage"
+        )
+        .classList
+        .remove("hidden");
+
+}
+
+
+function showLogin(){
+
+    document
+        .getElementById(
+            "registerPage"
+        )
+        .classList
+        .add("hidden");
+
+}
+
+
+
+/*
+=================================
+REGISTER TEACHER
+=================================
+*/
+
+async function registerTeacher(){
+
+    try{
+
+        const result =
+            await api(
+                "/api/auth/register",
+                "POST",
+                {
+
+                    name:
+                        regName.value,
+
+                    username:
+                        regUsername.value,
+
+                    email:
+                        regEmail.value,
+
+                    password:
+                        regPassword.value
+
+                }
+            );
+
+
+        showMessage(
+
+            "registerMessage",
+
+            result.message ||
+            "Registration submitted successfully.",
+
+            "ok"
+
+        );
+
+
+    }
+    catch(error){
+
+        showMessage(
+
+            "registerMessage",
+
+            error.message
+
+        );
+
+    }
+
+}
+
+
+
+/*
+=================================
+LOGIN
+=================================
+*/
+
+async function login(){
+
+    try{
+
+        const result =
+            await api(
+                "/api/auth/login",
+                "POST",
+                {
+
+                    username:
+                        loginUsername.value,
+
+                    password:
+                        loginPassword.value
+
+                }
+            );
+
+
+        token =
+            result.token;
+
+
+        user =
+            result.user;
+
+
+        localStorage.setItem(
+
+            "alfauzan_token",
+
+            token
+
+        );
+
+
+        localStorage.setItem(
+
+            "alfauzan_user",
+
+            JSON.stringify(user)
+
+        );
+
+
+        openApp();
+
+
+    }
+    catch(error){
+
+        showMessage(
+
+            "loginMessage",
+
+            error.message
+
+        );
+
+    }
+
+}
+
+
+
+/*
+=================================
+LOGOUT
+=================================
+*/
+
+function logout(){
+
+    localStorage.removeItem(
+        "alfauzan_token"
+    );
+
+    localStorage.removeItem(
+        "alfauzan_user"
+    );
+
+    token = "";
+
+    user = null;
+
+    location.reload();
+
+}
+
+
+
+/*
+=================================
+OPEN APPLICATION
+=================================
+*/
+
+function openApp(){
+
+    document
+        .getElementById(
+            "authPage"
+        )
+        .classList
+        .add("hidden");
+
+
+    document
+        .getElementById(
+            "appPage"
+        )
+        .classList
+        .remove("hidden");
+
+
+    document
+        .getElementById(
+            "userBox"
+        )
+        .classList
+        .remove("hidden");
+
+
+    document
+        .getElementById(
+            "userName"
+        )
+        .innerText =
+        user.name +
+        " (" +
+        user.role +
+        ")";
+
+
+    createNavigation();
+
+
+    loadDashboard();
+
+}
+
+
+
+/*
+=================================
+NAVIGATION
+=================================
+*/
+
+function createNavigation(){
+
+    let buttons = [
+
+        `<button onclick="loadDashboard()">
+            Dashboard
+        </button>`,
+
+        `<button onclick="loadStudents()">
+            Students
+        </button>`,
+
+        `<button onclick="loadReportSelector()">
+            Report Card
+        </button>`
+
+    ];
+
+
+    if(user.role === "admin"){
+
+        buttons.push(
+
+            `<button onclick="loadTeachers()">
+                Teachers
+            </button>`,
+
+            `<button onclick="loadAssignments()">
+                Assignments
+            </button>`,
+
+            `<button onclick="loadSettings()">
+                Settings
+            </button>`
+
+        );
+
+    }
+
+
+    document
+        .getElementById(
+            "navigation"
+        )
+        .innerHTML =
+        buttons.join("");
+
+}
+
+
+
+/*
+=================================
+DASHBOARD
+=================================
+*/
+
+async function loadDashboard(){
+
+    content.innerHTML =
+        `
+        <div class="card">
+            Loading dashboard...
+        </div>
+        `;
+
+
+    try{
+
+        if(user.role === "admin"){
+
+            const data =
+                await api(
+                    "/api/admin/dashboard"
+                );
+
+
+            content.innerHTML =
+            `
+
+            <div class="grid">
+
+                <div class="stat">
+                    <h2>
+                        ${data.teachers}
+                    </h2>
+                    Teachers
+                </div>
+
+
+                <div class="stat">
+                    <h2>
+                        ${data.students}
+                    </h2>
+                    Students
+                </div>
+
+
+                <div class="stat">
+                    <h2>
+                        ${data.classes}
+                    </h2>
+                    Classes
+                </div>
+
+
+                <div class="stat">
+                    <h2>
+                        ${data.subjects}
+                    </h2>
+                    Subjects
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h2>
+                    Pending Teachers
+                </h2>
+
+                ${createTable(
+                    data.pending.map(t => [
+
+                        t.name,
+
+                        t.username,
+
+                        t.email || "",
+
+                        `
+                        <button
+                            class="success"
+                            onclick="approveTeacher(${t.id})"
+                        >
+                            Approve
+                        </button>
+
+                        <button
+                            class="danger"
+                            onclick="rejectTeacher(${t.id})"
+                        >
+                            Reject
+                        </button>
+                        `
+
+                    ]),
+
+                    [
+                        "Name",
+                        "Username",
+                        "Email",
+                        "Action"
+                    ]
+
+                )}
+
+            </div>
+
+            `;
+
+
+        }
+        else{
+
+            content.innerHTML =
+            `
+            <div class="card">
+
+                <h2>
+                    Welcome ${user.name}
+                </h2>
+
+                <p>
+                    Your role is:
+                    <b>${user.role}</b>
+                </p>
+
+                <p>
+                    Welcome to
+                    AL-FAUZAN SMS.
+                </p>
+
+            </div>
+            `;
+
+        }
+
+
+    }
+    catch(error){
+
+        content.innerHTML =
+        `
+        <div class="card">
+            <div class="message error">
+                ${error.message}
+            </div>
+        </div>
+        `;
+
+    }
+
+}
+
+
+
+/*
+=================================
+TABLE
+=================================
+*/
+
+function createTable(
+    rows,
+    headers
+){
+
+    return `
+
+    <div class="table-box">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    ${headers
+                    .map(
+                        h =>
+                        `<th>${h}</th>`
+                    )
+                    .join("")}
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                ${rows
+                .map(
+                    row =>
+
+                    `<tr>
+
+                        ${row
+                        .map(
+                            cell =>
+                            `<td>${cell}</td>`
+                        )
+                        .join("")}
+
+                    </tr>`
+
+                )
+                .join("")}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    `;
+
+}
+
+
+
+/*
+=================================
+APPROVE TEACHER
+=================================
+*/
+
+async function approveTeacher(id){
+
+    try{
+
+        await api(
+
+            "/api/admin/teachers/" +
+            id +
+            "/approve",
+
+            "POST"
+
+        );
+
+
+        loadDashboard();
+
+
+    }
+    catch(error){
+
+        alert(
+            error.message
+        );
+
+    }
+
+}
+
+
+
+/*
+=================================
+REJECT TEACHER
+=================================
+*/
+
+async function rejectTeacher(id){
+
+    try{
+
+        await api(
+
+            "/api/admin/teachers/" +
+            id +
+            "/reject",
+
+            "POST"
+
+        );
+
+
+        loadDashboard();
+
+
+    }
+    catch(error){
+
+        alert(
+            error.message
+        );
+
+    }
+
+}
+
+
+
+/*
+=================================
+STUDENTS
+=================================
+*/
+
+async function loadStudents(){
+
+    try{
+
+        const students =
+            await api(
+                "/api/students"
+            );
+
+
+        const classes =
+            await api(
+                "/api/classes"
+            );
+
+
+        let addForm = "";
+
+
+        if(
+            user.role === "admin" ||
+            user.role === "teacher"
+        ){
+
+            addForm =
+            `
+
+            <div class="card">
+
+                <h2>
+                    Add Student
+                </h2>
+
+
+                <input
+                    id="studentName"
+                    placeholder="Student Name"
+                >
+
+
+                <select
+                    id="studentClass"
+                >
+
+                    ${classes
+                    .map(
+                        c =>
+                        `
+                        <option
+                            value="${c.id}"
+                        >
+                            ${c.name}
+                        </option>
+                        `
+                    )
+                    .join("")}
+
+                </select>
+
+
+                <input
+                    id="studentUsername"
+                    placeholder="Student Username"
+                >
+
+
+                <input
+                    id="studentPassword"
+                    type="password"
+                    placeholder="Password"
+                >
+
+
+                <input
+                    id="admissionNo"
+                    placeholder="Admission Number"
+                >
+
+
+                <button
+                    onclick="addStudent()"
+                >
+                    Add Student
+                </button>
+
+            </div>
+
+            `;
+
+        }
+
+
+        content.innerHTML =
+        `
+
+        ${addForm}
+
+
+        <div class="card">
+
+            <h2>
+                Students
+            </h2>
+
+
+            ${createTable(
+
+                students.map(
+
+                    s => [
+
+                        s.name,
+
+                        s.class_name || "",
+
+                        s.admission_no || "",
+
+                        `
+                        <button
+                            onclick="showMarks(${s.id}, '${s.name}')"
+                        >
+                            Marks
+                        </button>
+
+                        <button
+                            class="secondary"
+                            onclick="showReport(${s.id})"
+                        >
+                            Report
+                        </button>
+                        `
+
+                    ]
+
+                ),
+
+                [
+                    "Name",
+                    "Class",
+                    "Admission",
+                    "Action"
+                ]
+
+            )}
+
+        </div>
+
+        `;
+
+
+    }
+    catch(error){
+
+        content.innerHTML =
+        `
+        <div class="card">
+            ${error.message}
+        </div>
+        `;
+
+    }
+
+}
+
+
+
+/*
+=================================
+ADD STUDENT
+=================================
+*/
+
+async function addStudent(){
+
+    try{
+
+        await api(
+
+            "/api/students",
+
+            "POST",
+
+            {
+
+                name:
+                    studentName.value,
+
+                class_id:
+                    studentClass.value,
+
+                username:
+                    studentUsername.value,
+
+                password:
+                    studentPassword.value,
+
+                admission_no:
+                    admissionNo.value
+
+            }
+
+        );
+
+
+        alert(
+            "Student added successfully"
+        );
+
+
+        loadStudents();
+
+
+    }
+    catch(error){
+
+        alert(
+            error.message
+        );
+
+    }
+
+}
+
+
+
+/*
+=================================
+MARKS
+=================================
+*/
+
+async function showMarks(
+    studentId,
+    studentName
+){
+
+    try{
+
+        const marks =
+            await api(
+                "/api/marks/" +
+                studentId
+            );
+
+
+        content.innerHTML =
+        `
+
+        <div class="card">
+
+            <button
+                class="secondary"
+                onclick="loadStudents()"
+            >
+                Back
+            </button>
+
+
+            <h2>
+                Marks for
+                ${studentName}
+            </h2>
+
+
+            ${createTable(
+
+                marks.map(
+
+                    m => [
+
+                        m.subject,
+
+                        `
+                        <input
+                            id="test1_${m.subject_id}"
+                            type="number"
+                            min="0"
+                            max="20"
+                            value="${m.test1}"
+                        >
+                        `,
+
+                        `
+                        <input
+                            id="test2_${m.subject_id}"
+                            type="number"
+                            min="0"
+                            max="20"
+                            value="${m.test2}"
+                        >
+                        `,
+
+                        `
+                        <input
+                            id="exam_${m.subject_id}"
+                            type="number"
+                            min="0"
+                            max="60"
+                            value="${m.exam}"
+                        >
+                        `,
+
+                        m.total,
+
+                        m.grade,
+
+                        `
+                        <button
+                            onclick="
+                            saveMark(
+                                ${studentId},
+                                ${m.subject_id}
+                            )
+                            "
+                        >
+                            Save
+                        </button>
+                        `
+
+                    ]
+
+                ),
+
+                [
+                    "Subject",
+                    "Test 1",
+                    "Test 2",
+                    "Exam",
+                    "Total",
+                    "Grade",
+                    "Save"
+                ]
+
+            )}
+
+        </div>
+
+        `;
+
+
+    }
+    catch(error){
+
+        alert(
+            error.message
+        );
+
+    }
+
+}
+
+
+
+/*
+=================================
+SAVE MARK
+=================================
+*/
+
+async function saveMark(
+    studentId,
+    subjectId
+){
+
+    try{
+
+        await api(
+
+            "/api/marks",
+
+            "POST",
+
+            {
+
+                student_id:
+                    studentId,
+
+                subject_id:
+                    subjectId,
+
+                test1:
+                    document
+                    .getElementById(
+                        "test1_" +
+                        subjectId
+                    )
+                    .value,
+
+                test2:
+                    document
+                    .getElementById(
+                        "test2_" +
+                        subjectId
+                    )
+                    .value,
+
+                exam:
+                    document
+                    .getElementById(
+                        "exam_" +
+                        subjectId
+                    )
+                    .value
+
+            }
+
+        );
+
+
+        alert(
+            "Mark saved successfully"
+        );
+
+
+    }
+    catch(error){
+
+        alert(
+            error.message
+        );
+
+    }
+
+}
+
+
+
+/*
+=================================
+REPORT SELECTOR
+=================================
+*/
+
+async function loadReportSelector(){
+
+    try{
+
+        const students =
+            await api(
+                "/api/students"
+            );
+
+
+        content.innerHTML =
+        `
+
+        <div class="card">
+
+            <h2>
+                Select Student
+            </h2>
+
+
+            <select
+                id="selectedStudent"
+            >
+
+                ${students
+                .map(
+
+                    s =>
+
+                    `
+                    <option
+                        value="${s.id}"
+                    >
+
+                        ${s.name}
+                        -
+                        ${s.class_name || ""}
+
+                    </option>
+                    `
+
+                )
+                .join("")}
+
+            </select>
+
+
+            <button
+                onclick="
+                showReport(
+                    selectedStudent.value
+                )
+                "
+            >
+                Open Report
+            </button>
+
+        </div>
+
+        `;
+
+
+    }
+    catch(error){
+
+        alert(
+            error.message
+        );
+
+    }
+
+}
+
+
+
+/*
+=================================
+REPORT CARD
+=================================
+*/
+
+async function showReport(
+    studentId
+){
+
+    try{
+
+        const data =
+            await api(
+                "/api/reports/" +
+                studentId
+            );
+
+
+        if(
+            data.report_held &&
+            user.role === "student"
+        ){
+
+            content.innerHTML =
+            `
+            <div class="card">
+
+                Report card is currently
+                held by the Administrator.
+
+            </div>
+            `;
+
+            return;
+
+        }
+
+
+        content.innerHTML =
+        `
+
+        <div class="report">
+
+            <button
+                onclick="window.print()"
+            >
+                Print Report
+            </button>
+
+
+            <h1>
+                ${data.school_name}
+            </h1>
+
+
+            <p class="school">
+                ${data.school_address}
+            </p>
+
+
+            <h2>
+                STUDENT REPORT CARD
+            </h2>
+
+
+            <p class="school">
+                ${data.session}
+                -
+                ${data.term}
+            </p>
+
+
+            <hr>
+
+
+            <p>
+
+                <b>Name:</b>
+                ${data.student.name}
+
+                <br>
+
+                <b>Class:</b>
+                ${data.student.class_name}
+
+                <br>
+
+                <b>Position:</b>
+                ${data.position}
+                /
+                ${data.out_of}
+
+            </p>
+
+
+            ${createTable(
+
+                data.rows.map(
+
+                    r => [
+
+                        r.subject,
+
+                        r.test1,
+
+                        r.test2,
+
+                        r.exam,
+
+                        `<b
+                        style="
+                        color:${r.grade_color}
+                        "
+                        >
+                            ${r.total}
+                        </b>`,
+
+                        r.grade
+
+                    ]
+
+                ),
+
+                [
+                    "Subject",
+                    "Test 1",
+                    "Test 2",
+                    "Exam",
+                    "Total",
+                    "Grade"
+                ]
+
+            )}
+
+
+            <h3>
+                Total:
+                ${data.total}
+            </h3>
+
+
+            <h3>
+                Average:
+                ${data.average}
+            </h3>
+
+
+            <p>
+
+                <b>
+                    Teacher's Remark:
+                </b>
+
+                <br>
+
+                ${data.teacher_remarks}
+
+            </p>
+
+
+            <p>
+
+                <b>
+                    Headmaster's Remark:
+                </b>
+
+                <br>
+
+                ${data.headmaster_remarks}
+
+            </p>
+
+
+            <hr>
+
+
+            <small>
+
+                Report Date:
+                ${data.report_date}
+
+                <br>
+
+                Developer:
+                ${data.developer_name}
+
+                -
+                ${data.developer_year}
+
+            </small>
+
+
+        </div>
+
+        `;
+
+
+    }
+    catch(error){
+
+        alert(
+            error.message
+        );
+
+    }
+
+}
+
+
+
+/*
+=================================
+AUTO LOGIN CHECK
+=================================
+*/
+
+if(
+    token &&
+    user
+){
+
+    api("/api/me")
+
+    .then(
+        () => openApp()
+    )
+
+    .catch(
+        () => logout()
+    );
+
+}
+
+
+</script>
+
+</body>
+</html>
